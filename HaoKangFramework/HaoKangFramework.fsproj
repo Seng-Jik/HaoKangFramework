@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <Compile Include="Constraints.fs" />
+    <Compile Include="Spiders\Konachan.fs" />
   </ItemGroup>
 
 </Project>

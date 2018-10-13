@@ -40,5 +40,7 @@ and ISpider =
     inherit IDisposable
     abstract TestConnection : unit Async
     abstract Search : SearchParam -> Post seq
-    abstract FindPostByID : uint64 -> Post Async
+    abstract FindPostByID : uint64 -> Post option Async
+    abstract WebsiteName : string
+
 
