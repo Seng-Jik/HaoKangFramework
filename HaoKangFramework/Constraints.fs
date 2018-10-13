@@ -6,34 +6,39 @@ type AgeGrading =
 | Everyone
 | R15
 | R18
+| Unknown
 
 type PostType =
 | Video
 | Image
 
+[<Struct>]
 type SearchParam = {
     Tags : string list
-    AgeGrading : AgeGrading
-    Type : PostType list
+    AgeGrading : AgeGrading list
+    PostType : PostType list
     Uploader : string voption 
     Title : string voption
     UpdateTime : (DateTime * TimeSpan) voption }
 
-type IPost =
-    inherit IDisposable
-    abstract Thumbnail : byte[] Async
-    abstract Data : byte[] Async
-    abstract PostType : PostType
-    abstract AgeGrading : AgeGrading
-    abstract Title : string
-    abstract FileName : string
-    abstract FileExtensionName : string
-    abstract UpdateTime : DateTime
-    abstract Uploader : string
-    abstract Tags : string[]
-    abstract FromSpider : ISpider
+[<Struct>]
+type Post = {
+    ID : uint64
+    Thumbnail : byte[] Async
+    Data : byte[] Async
+    PostType : PostType
+    AgeGrading : AgeGrading
+    Title : string
+    FileName : string
+    FileExtensionName : string
+    UpdateTime : DateTime
+    Uploader : string
+    Tags : string[]
+    FromSpider : ISpider }
 
 and ISpider =
     inherit IDisposable
     abstract TestConnection : unit Async
-    abstract Search : SearchParam -> IPost seq
+    abstract Search : SearchParam -> Post seq
+    abstract FindPostByID : uint64 -> Post Async
+
