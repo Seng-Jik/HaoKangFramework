@@ -25,7 +25,7 @@ type SearchParam = {
 type Post = {
     ID : uint64
     Thumbnail : byte[] Async
-    Data : byte[] Async
+    Content : byte[] Async list
     PostType : PostType
     AgeGrading : AgeGrading
     Title : string

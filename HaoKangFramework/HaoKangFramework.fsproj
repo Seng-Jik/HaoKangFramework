@@ -6,7 +6,10 @@
 
   <ItemGroup>
     <Compile Include="Constraints.fs" />
-    <Compile Include="Spiders\Konachan.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Spiders\" />
   </ItemGroup>
 
 </Project>
