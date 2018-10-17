@@ -40,9 +40,7 @@ and Page = Post seq
 
 and ISpider =
     inherit IDisposable
-    abstract TestConnection : unit Async
     abstract Search : SearchParam -> Page seq
-    abstract FindPostByID : uint64 -> Post option Async
-    abstract WebsiteName : string
+
 
 
