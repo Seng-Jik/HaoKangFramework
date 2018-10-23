@@ -40,6 +40,7 @@ and Page = Post seq
 
 and ISpider =
     inherit IDisposable
+    abstract TestConnection : unit -> bool
     abstract Search : SearchParam -> Page seq
 
 
