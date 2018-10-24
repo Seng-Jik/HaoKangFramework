@@ -13,26 +13,15 @@ type PostType =
 | Image
 
 [<Struct>]
-type SearchParam = {
-    Tags : string list
-    AgeGrading : AgeGrading list
-    PostType : PostType list
-    Uploader : string voption 
-    Title : string voption
-    UpdateTime : (DateTime * TimeSpan) voption }
-
-[<Struct>]
 type Post = {
     ID : uint64
-    Thumbnail : byte[] Async
+    Preview : byte[] Async
     Content : byte[] Async list
     PostType : PostType
     AgeGrading : AgeGrading
-    Title : string
     FileName : string
     FileExtensionName : string
-    UpdateTime : DateTime
-    Uploader : string
+    Author : string
     Tags : string[]
     FromSpider : ISpider }
 
@@ -41,7 +30,12 @@ and Page = Post seq
 and ISpider =
     inherit IDisposable
     abstract TestConnection : unit -> bool
-    abstract Search : SearchParam -> Page seq
+    abstract Search : tags : string list -> Page seq
 
+module Spider =
+    let inline TestConnection spider =
+        (spider :> ISpider).TestConnection ()
+    let inline Search param spider =
+        (spider :> ISpider).Search param
 
 
