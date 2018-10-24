@@ -9,7 +9,7 @@ open HaoKangFramework.Spiders
 [<TestClass>]
 type TestSpiders () =
 
-    let knc = new Yandere()
+    let knc = new Konachan()
     [<TestMethod>]
     member this.TestConnection () =
         assert (Spider.TestConnection knc)
@@ -24,10 +24,10 @@ type TestSpiders () =
             page
             |> Seq.map (fun post ->
                 async {
-                    let! prv_data = post.Preview
+                    //let! prv_data = post.Preview
                     let! data = post.Content |> List.head
                     File.WriteAllBytes (dir.FullName + "\\" + post.FileName + "." + post.FileExtensionName,data)
-                    File.WriteAllBytes (dir.FullName + "\\" + post.FileName + "_pv." + post.FileExtensionName,prv_data)
+                    //File.WriteAllBytes (dir.FullName + "\\" + post.FileName + "_pv." + post.FileExtensionName,prv_data)
                 })
             |> Async.Parallel
             |> Async.RunSynchronously 
