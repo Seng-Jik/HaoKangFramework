@@ -1,14 +1,26 @@
 ﻿open HaoKangFramework
 open HaoKangFramework.Utils
 open System.IO    
-
-let searchParam = ["yuri";"uncensored"]
+open System
 
 let searchResult =
-    Spider.Spiders
-    |> Array.filter (fun (x,_) -> x <> "Yandere" && x <> "Konachan")
+    let searchParam = 
+        printfn "输入要查询的关键词，用空格分隔："
+        Console.ReadLine().Split(' ')
+        |> Array.toList
+
+    let spiderSet =
+        printfn ""
+        Spider.Spiders
+        |> Array.iteri (fun i (x,_) -> 
+            printfn "%d. %s" i x)
+        printfn "输入你要使用的爬虫的编号，用空格分隔："
+        Console.ReadLine().Split(' ')
+        |> Array.map int
+        |> Array.map (fun i -> Spider.Spiders.[i])
+
+    spiderSet
     |> Array.map (fun (name,factory) ->
-        printfn "Spider Deceted:%s" name
         (name,factory ()))
     |> Array.filter (fun (name,x) ->
         let test = Spider.TestConnection x
