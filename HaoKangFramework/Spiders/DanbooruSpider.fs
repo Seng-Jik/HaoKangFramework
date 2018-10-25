@@ -5,11 +5,14 @@ open HaoKangFramework
 module private BooruUtils =
     open System.Net
     open System.Xml
+    open System.Net.Http
+    open System
 
     let TestConnection (postXml:string) =
         try
-            use web = new WebClient ()
-            web.DownloadString postXml |> ignore
+            use web = new HttpClient ()
+            web.Timeout <- TimeSpan(0,0,10)
+            (web.GetAsync postXml).Result |> ignore
             true
         with x -> false
 
