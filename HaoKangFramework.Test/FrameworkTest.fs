@@ -9,8 +9,14 @@ open HaoKangFramework.Spiders
 module private Downloader =
     let inline Download3Pages spider =
         assert (Spider.TestConnection spider)
-        Spider.Search [] spider
-        |> Seq.take 3
+        let result = 
+            let pages = Spider.Search [] spider
+            try
+                pages
+                |> Seq.take 3
+            with _ -> pages
+        
+        result
         |> Seq.iteri (fun i page ->
             let spiderName = spider |> string
             let dir = Directory.CreateDirectory (sprintf "%s Page %d" spiderName.[spiderName.LastIndexOf '.' + 1 ..] i)
@@ -18,13 +24,14 @@ module private Downloader =
             page
             |> Seq.map (fun post ->
                 async {
-                    //let! prv_data = post.Preview
-                    //try
-                        let! data = post.Content |> List.head
-                        File.WriteAllBytes (dir.FullName + "\\" + post.FileName,data)
-                    
-                    //File.WriteAllBytes (dir.FullName + "\\" + post.FileName + "_pv." + post.FileExtensionName,prv_data)
-                })
+                    post.Content
+                    |> List.map (fun x -> async {
+                        match! x.Data with
+                        | Ok data -> File.WriteAllBytes (dir.FullName + "\\" + (Utils.NormalizeFileName x.FileName),data)
+                        | Error _ -> ()})
+                    |> Async.Parallel
+                    |> Async.Ignore
+                    |> Async.RunSynchronously })
             |> Async.Parallel
             |> Async.RunSynchronously 
             |> ignore )

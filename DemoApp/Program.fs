@@ -1,40 +1,12 @@
 ﻿open HaoKangFramework
-open System.IO
-open System
-open HaoKangFramework.Spiders
+open HaoKangFramework.Utils
+open System.IO    
 
-let DownloadPage name (page:Page) =
-    page
-    |> Seq.iter (fun post -> 
-        async {
-            try
-                let! data = post.Content.Head
-                if data <> null then
-                    File.WriteAllBytes (name + "\\" + (post.ID |> string) + "." + post.FileExtensionName,data)
-                    printfn "Downloaded %s" post.FileName
-            with 
-            | _ -> () } |> Async.RunSynchronously )
-
-let DownloadPages name (page:Page seq) =
-    printfn "Indexing %s" name
-    
-    let downloadList = 
-        try 
-            page
-            |> Seq.take 100
-        with _ -> page
-
-    try
-        downloadList
-        |> Seq.iter (DownloadPage name)
-    with _ -> ()
-
-
-let searchParam = ["footjob"]
+let searchParam = ["yuri";"uncensored"]
 
 let searchResult =
     Spider.Spiders
-    |> Array.filter (fun (x,_) -> x <> "Yandere")
+    |> Array.filter (fun (x,_) -> x <> "Yandere" && x <> "Konachan")
     |> Array.map (fun (name,factory) ->
         printfn "Spider Deceted:%s" name
         (name,factory ()))
@@ -50,11 +22,32 @@ let searchResult =
     |> Async.Parallel
     |> Async.RunSynchronously
 
-searchResult
-|> Array.map (fun (name,result) ->
-    async { DownloadPages name result })
-|> Async.Parallel
-|> Async.Ignore
-|> Async.RunSynchronously
 
-        
+let DownloadSite name (pageSeq : Page seq) = 
+    let DownloadPage (page : Page) =
+        page
+        |> Seq.collect (fun post -> post.Content)
+        |> Seq.map (fun content -> 
+            async {
+                printfn "Downloading %s" content.FileName
+                let targetFile = name + "\\" + (NormalizeFileName content.FileName)
+
+                match! content.Data with
+                | Ok data ->
+                    File.WriteAllBytes (targetFile,data)
+                    printfn "Downloaded! %s" content.FileName
+                | Error e -> printfn "%A %s" e content.FileName})
+        |> Async.Parallel
+        |> Async.Ignore
+        |> Async.RunSynchronously
+    
+    printfn "==== %s ====" name
+    
+    pageSeq
+    |> Seq.takeWhile (fun x -> Seq.isEmpty x |> not)
+    |> Seq.iteri (fun i page -> 
+        printfn "-- Page %d" i
+        DownloadPage page)
+
+searchResult
+|> Seq.iter (fun (name,x) -> DownloadSite name x)

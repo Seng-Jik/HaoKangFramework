@@ -8,7 +8,7 @@ module private BooruUtils =
     open System.Net.Http
     open System
 
-    let postsPerPage = 100
+    let postsPerPage = 2
 
     let TestConnection (postXml:string) =
         try
@@ -44,8 +44,8 @@ module private BooruUtils =
                 url
         return 
             try
-                realUrl |> web.DownloadData
-            with _ -> null }
+                realUrl |> web.DownloadData |> Ok
+            with _ -> Error DownloadFailed }
 
     let GetPostsDanbooru (pageFormat : PageFormat) postXmlUrl pageID tags spider =
         try
@@ -70,15 +70,16 @@ module private BooruUtils =
                     ID = i.SelectSingleNode("id").InnerText |> uint64
                     Preview = 
                         if System.String.IsNullOrWhiteSpace priviewUrl then
-                            ValueNone
+                            async { return Error NoData }
                         else 
-                            DownloadAsync priviewUrl |> ValueSome
+                            DownloadAsync priviewUrl
 
-                    Content = [ DownloadAsync contentUrl ]
-                    ContentUrl = [ contentUrl ]
+                    Content = [ {
+                        Data = DownloadAsync contentUrl
+                        FileName = contentUrl.[contentUrl.LastIndexOf '/' + 1 ..]
+                        FileExtName = contentUrl.[contentUrl.LastIndexOf '.' + 1 ..]
+                        Url = contentUrl } ]
                     AgeGrading = Rating (i.SelectSingleNode("rating").InnerText)
-                    FileName = contentUrl.[contentUrl.LastIndexOf '/' + 1 ..]
-                    FileExtensionName = contentUrl.[contentUrl.LastIndexOf '.' + 1 ..]
                     Author = i.SelectSingleNode("uploader-name").InnerText
                     Tags = i.SelectSingleNode("tag-string").InnerText.Split(' ')
                     FromSpider = spider }]
@@ -105,14 +106,15 @@ module private BooruUtils =
 
                     Preview = 
                         match i.Attributes.["preview_url"] with
-                        | null -> ValueNone
-                        | x -> DownloadAsync x.Value |> ValueSome
+                        | null -> async { return Error NoData }
+                        | x -> DownloadAsync x.Value
 
-                    Content = [ DownloadAsync url ]
-                    ContentUrl = [ url ]
+                    Content = [ {
+                        Data = DownloadAsync url
+                        FileName =  url.[url.LastIndexOf '/' + 1 ..]
+                        FileExtName = url.[url.LastIndexOf '.' + 1 ..]
+                        Url = url }]
                     AgeGrading = Rating i.Attributes.["rating"].Value
-                    FileName = url.[url.LastIndexOf '/' + 1 ..]
-                    FileExtensionName = url.[url.LastIndexOf '.' + 1 ..]
                     Author = 
                         match i.Attributes.["author"] with
                         | null -> ""
