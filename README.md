@@ -6,9 +6,9 @@ Excited Library!!!
 这是个用于从壁纸网站上爬取图片的爬虫工具箱，本库采用F#语言编写，这个库可以帮助你从壁纸网站上爬取图片。
 请注意，这个库遵守LGPL v3协议，以及不要用它做违法的事情，以此库造成的任何问题，均与库作者无关。
 
-## 我如何使用它
+## 如何使用它
 
-### 搜索
+### 搜索图像
 1. 导入这个库到你的F#/C#项目中
 2. open HaoKangFramework.Spider
 3. Spiders是一个(string * ISpider) []，这里面有这个库可以使用的所有爬虫。
@@ -38,7 +38,6 @@ Excited Library!!!
 - ecchi.iwara(Images)
 - Chan.SankakuComplex
 - Idol.SankakuComplex
-- https://booru.org/top中的Boorus
 - Pixiv
 - ExHentai
 

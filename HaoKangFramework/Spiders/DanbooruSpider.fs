@@ -8,7 +8,7 @@ module private BooruUtils =
     open System.Net.Http
     open System
 
-    let postsPerPage = 2
+    let postsPerPage = 100
 
     let TestConnection (postXml:string) =
         try
@@ -185,4 +185,3 @@ type HypnoHub () =
     inherit KonachanLikeBooruSpider ("https://hypnohub.net/post/index.xml",KonachanFormat)
 
 
-(* Next Works : https://booru.org/top *)

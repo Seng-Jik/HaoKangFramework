@@ -22,9 +22,11 @@ module private Downloader =
             let dir = Directory.CreateDirectory (sprintf "%s Page %d" spiderName.[spiderName.LastIndexOf '.' + 1 ..] i)
             
             page
+            |> Seq.take 3
             |> Seq.map (fun post ->
                 async {
                     post.Content
+                    |> List.take 1
                     |> List.map (fun x -> async {
                         match! x.Data with
                         | Ok data -> File.WriteAllBytes (dir.FullName + "\\" + (Utils.NormalizeFileName x.FileName),data)

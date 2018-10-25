@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="SpiderNames.fs" />
     <Compile Include="FrameworkTest.fs" />
+    <Compile Include="SpiderDeceting.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
