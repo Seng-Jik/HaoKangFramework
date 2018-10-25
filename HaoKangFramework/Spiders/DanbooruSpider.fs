@@ -8,6 +8,8 @@ module private BooruUtils =
     open System.Net.Http
     open System
 
+    let postsPerPage = 100
+
     let TestConnection (postXml:string) =
         try
             use web = new HttpClient ()
@@ -22,13 +24,13 @@ module private BooruUtils =
         | "e" -> R18
         | _ -> Unknown
 
-    type PageFormat = Printf.StringFormat<(string -> int -> string -> string)>
+    type PageFormat = Printf.StringFormat<(string -> int -> int -> string -> string)>
 
-    let private GetPostXml (pageFormat:PageFormat) postXmlUrl pageID tags =
+    let private GetPostXml (pageFormat:PageFormat) postXmlUrl postsPerPage pageID tags =
         let xml = XmlDocument ()
 
         using (new WebClient ()) (fun web ->
-            sprintf pageFormat postXmlUrl pageID tags
+            sprintf pageFormat postXmlUrl postsPerPage pageID tags
             |> web.DownloadString
             |> xml.LoadXml )
         xml
@@ -40,88 +42,93 @@ module private BooruUtils =
                 "https:" + url
             else
                 url
-        try
-            return realUrl |> web.DownloadData
-        with _ -> return null }
+        return 
+            try
+                realUrl |> web.DownloadData
+            with _ -> null }
 
     let GetPostsDanbooru (pageFormat : PageFormat) postXmlUrl pageID tags spider =
-        let xml = GetPostXml pageFormat postXmlUrl pageID tags
-        let posts = xml.SelectSingleNode "posts"
+        try
+            let xml = GetPostXml pageFormat postXmlUrl postsPerPage pageID tags
+            let posts = xml.SelectSingleNode "posts"
 
-        [ for i in posts.ChildNodes ->
-            let priviewUrl = 
-                match i.SelectSingleNode("priview_file_url") with
-                | null -> null
-                | x -> x.InnerText
-
-            let contentUrl = 
-                match i.SelectSingleNode("large-file-url") with
-                | null -> 
-                    match i.SelectSingleNode("file-url") with
-                    | null -> i.SelectSingleNode("source").InnerText
+            [ for i in posts.ChildNodes ->
+                let priviewUrl = 
+                    match i.SelectSingleNode("priview_file_url") with
+                    | null -> null
                     | x -> x.InnerText
-                | x -> x.InnerText
 
-            {
-                ID = i.SelectSingleNode("id").InnerText |> uint64
-                Preview = 
-                    if System.String.IsNullOrWhiteSpace priviewUrl then
-                        ValueNone
-                    else 
-                        DownloadAsync priviewUrl |> ValueSome
+                let contentUrl = 
+                    match i.SelectSingleNode("large-file-url") with
+                    | null -> 
+                        match i.SelectSingleNode("file-url") with
+                        | null -> i.SelectSingleNode("source").InnerText
+                        | x -> x.InnerText
+                    | x -> x.InnerText
 
-                Content = [ DownloadAsync contentUrl ]
-                ContentUrl = [ contentUrl ]
-                AgeGrading = Rating (i.SelectSingleNode("rating").InnerText)
-                FileName = contentUrl.[contentUrl.LastIndexOf '/' + 1 ..]
-                FileExtensionName = contentUrl.[contentUrl.LastIndexOf '.' + 1 ..]
-                Author = i.SelectSingleNode("uploader-name").InnerText
-                Tags = i.SelectSingleNode("tag-string").InnerText.Split(' ')
-                FromSpider = spider }]
+                {
+                    ID = i.SelectSingleNode("id").InnerText |> uint64
+                    Preview = 
+                        if System.String.IsNullOrWhiteSpace priviewUrl then
+                            ValueNone
+                        else 
+                            DownloadAsync priviewUrl |> ValueSome
 
-    let GetPostsKonachan pageFormat postXmlUrl pageID tags spider =
-        let xml = GetPostXml pageFormat postXmlUrl pageID tags
-        let posts = xml.SelectSingleNode "posts"
+                    Content = [ DownloadAsync contentUrl ]
+                    ContentUrl = [ contentUrl ]
+                    AgeGrading = Rating (i.SelectSingleNode("rating").InnerText)
+                    FileName = contentUrl.[contentUrl.LastIndexOf '/' + 1 ..]
+                    FileExtensionName = contentUrl.[contentUrl.LastIndexOf '.' + 1 ..]
+                    Author = i.SelectSingleNode("uploader-name").InnerText
+                    Tags = i.SelectSingleNode("tag-string").InnerText.Split(' ')
+                    FromSpider = spider }]
+        with _ -> []
 
-        let count = posts.Attributes.["count"].Value |> int
-        let pageCount = 
-            match count % 5 with
-            | 0 -> count / 5
-            | _ -> count / 5 + 1
+    let GetPostsKonachan pageFormat postXmlUrl pageID tags spider = 
+        try
+            let xml = GetPostXml pageFormat postXmlUrl postsPerPage pageID tags
+            let posts = xml.SelectSingleNode "posts"
+
+            let count = posts.Attributes.["count"].Value |> int
+            let pageCount = 
+                match count % postsPerPage with
+                | 0 -> count / postsPerPage
+                | _ -> count / postsPerPage + 1
         
-        ([ for i in posts.ChildNodes -> 
-            let url = i.Attributes.["file_url"].Value
-            {
-                ID = 
-                    match i.Attributes.["id"] with
-                    | null -> 0UL
-                    | x -> x.Value |> uint64
+            ([ for i in posts.ChildNodes -> 
+                let url = i.Attributes.["file_url"].Value
+                {
+                    ID = 
+                        match i.Attributes.["id"] with
+                        | null -> 0UL
+                        | x -> x.Value |> uint64
 
-                Preview = 
-                    match i.Attributes.["preview_url"] with
-                    | null -> ValueNone
-                    | x -> DownloadAsync x.Value |> ValueSome
+                    Preview = 
+                        match i.Attributes.["preview_url"] with
+                        | null -> ValueNone
+                        | x -> DownloadAsync x.Value |> ValueSome
 
-                Content = [ DownloadAsync url ]
-                ContentUrl = [ url ]
-                AgeGrading = Rating i.Attributes.["rating"].Value
-                FileName = url.[url.LastIndexOf '/' + 1 ..]
-                FileExtensionName = url.[url.LastIndexOf '.' + 1 ..]
-                Author = 
-                    match i.Attributes.["author"] with
-                    | null -> ""
-                    | x -> x.Value
+                    Content = [ DownloadAsync url ]
+                    ContentUrl = [ url ]
+                    AgeGrading = Rating i.Attributes.["rating"].Value
+                    FileName = url.[url.LastIndexOf '/' + 1 ..]
+                    FileExtensionName = url.[url.LastIndexOf '.' + 1 ..]
+                    Author = 
+                        match i.Attributes.["author"] with
+                        | null -> ""
+                        | x -> x.Value
 
-                Tags = i.Attributes.["tags"].Value.Split ' '
-                FromSpider = spider }]
-        ,pageCount)
+                    Tags = i.Attributes.["tags"].Value.Split ' '
+                    FromSpider = spider }]
+            ,pageCount)
+        with _ -> ([],0)
 
     let ReduceTags = function 
     | [] -> ""
     | x -> List.reduce (fun x y -> x + " " + y) x
     
-    let KonachanFormat : PageFormat = "%s?limit=5&page=%d&tags=%s"
-    let GelbooruFormat : PageFormat = "%s?page=dapi&s=post&q=index&&limit=5&pid=%d&tags=%s"
+    let KonachanFormat : PageFormat = "%s?limit=%d&page=%d&tags=%s"
+    let GelbooruFormat : PageFormat = "%s?page=dapi&s=post&q=index&&limit=%d&pid=%d&tags=%s"
 
 open BooruUtils
 
