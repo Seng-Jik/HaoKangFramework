@@ -1,10 +1,32 @@
 ﻿open HaoKangFramework
 open System.IO
+open System
+open HaoKangFramework.Spiders
+
+let DownloadPage name (page:Page) =
+    page
+    |> Seq.map (fun post -> 
+        async {
+            try
+                printfn "Downloading %s %s" name post.FileName
+                let! data = post.Content.Head
+                if data <> null then
+                    File.WriteAllBytes (name + "\\" + post.FileName,data)
+            with 
+            | _ -> () })
+    |> Async.Parallel
+    |> Async.Ignore
+
+let DownloadPages name (page:Page seq) =
+    page
+    |> Seq.head |> DownloadPage name
+    |> Async.Ignore
 
 let searchParam = ["masturbation";"uncensored"]
 
-let searchResults = 
+let searchResult =
     Spider.Spiders
+    |> Array.filter (fun (x,_) -> x <> "Yandere")
     |> Array.map (fun (name,factory) ->
         printfn "Spider Deceted:%s" name
         (name,factory ()))
@@ -19,14 +41,12 @@ let searchResults =
     |> Array.map (fun (name,x) -> async { return name,(x |> Spider.Search searchParam) })
     |> Async.Parallel
     |> Async.RunSynchronously
-    |> Seq.map (fun (name,pages) ->
-        try 
-            printfn "Indexing:%s" name
-            let take100 =
-                pages
-                |> Seq.take 100
-            name,take100
-        with x -> name,pages)
-    |> Seq.fold (fun s t -> t::s) []
+
+searchResult
+|> Array.map (fun (name,x) -> 
+    DownloadPages name x)
+|> Async.Parallel
+|> Async.Ignore
+|> Async.RunSynchronously
 
         

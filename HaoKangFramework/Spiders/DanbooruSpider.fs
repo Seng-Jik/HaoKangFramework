@@ -40,7 +40,9 @@ module private BooruUtils =
                 "https:" + url
             else
                 url
-        return realUrl |> web.DownloadData }
+        try
+            return realUrl |> web.DownloadData
+        with _ -> return null }
 
     let GetPostsDanbooru (pageFormat : PageFormat) postXmlUrl pageID tags spider =
         let xml = GetPostXml pageFormat postXmlUrl pageID tags
