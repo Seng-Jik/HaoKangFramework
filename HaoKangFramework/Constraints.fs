@@ -8,16 +8,13 @@ type AgeGrading =
 | R18
 | Unknown
 
-type PostType =
-| Video
-| Image
 
 [<Struct>]
 type Post = {
     ID : uint64
-    Preview : byte[] Async
+    Preview : byte[] Async voption
     Content : byte[] Async list
-    PostType : PostType
+    ContentUrl : string list
     AgeGrading : AgeGrading
     FileName : string
     FileExtensionName : string
