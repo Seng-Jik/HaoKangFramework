@@ -30,9 +30,11 @@ module private BooruUtils =
         let xml = XmlDocument ()
 
         using (new WebClient ()) (fun web ->
-            sprintf pageFormat postXmlUrl postsPerPage pageID tags
-            |> web.DownloadString
-            |> xml.LoadXml )
+            let xmlString =
+                sprintf pageFormat postXmlUrl postsPerPage pageID tags
+                |> web.DownloadString
+            //System.IO.File.WriteAllText ("fuckyou.xml",xmlString)
+            xmlString |> xml.LoadXml )
         xml
 
     let private DownloadAsync (url : string) = async { 
@@ -173,7 +175,7 @@ type ATFBooru () =
     inherit DanbooruLikeBooruSpider ("https://atfbooru.ninja/posts.xml",KonachanFormat)
 
 type LoliBooru () =
-    inherit KonachanLikeBooruSpider ("https://lolibooru.moe/post/index.xml",KonachanFormat)
+    inherit KonachanLikeBooruSpider ("https://lolibooru.moe/post.xml",KonachanFormat)
 
 type Rule34 () =
     inherit KonachanLikeBooruSpider ("https://rule34.xxx/index.php",GelbooruFormat)
