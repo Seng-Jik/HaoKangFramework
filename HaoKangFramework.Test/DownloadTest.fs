@@ -15,23 +15,25 @@ type DownloadTest () =
         Directory.CreateDirectory name |> ignore
         spider
         |> Spider.Search []
-        |> Seq.head
-        |> function
-        | Ok a ->
-            a
-            |> Seq.take 3
-            |> Seq.map (fun x -> 
-                async {
-                    let content = x.Content |> List.head
-                    let data = content.Data.Force ()
-                    match data with
-                    | Ok data ->
-                        File.WriteAllBytes (name + "\\" + content.FileName,data)
-                    | Error e -> printfn "%s download failed:%s" name e.Message })
-            |> Async.Parallel
-            |> Async.Ignore
-            |> Async.RunSynchronously
-        | Error e -> printfn "%s error:%s" name e.Message
+        |> Seq.take 3
+        |> Seq.iter (
+            function
+            | Ok a ->
+                a
+                |> Seq.take 3
+                |> Seq.map (fun x -> 
+                    async {
+                        let content = x.Content |> List.head
+                        let data = content.Data.Force ()
+                        match data with
+                        | Ok data ->
+                            File.WriteAllBytes (name + "\\" + content.FileName,data)
+                        | Error e -> printfn "%s download failed:%s" name e.Message })
+                |> Async.Parallel
+                |> Async.Ignore
+                |> Async.RunSynchronously
+            | Error e -> printfn "%s error:%s" name e.Message)
+        
 
     [<TestMethod>]
     member x.TestAll () =
