@@ -2,6 +2,8 @@
 open System
 open System.Net
 open System.IO
+open HaoKangFramework
+open Utils
 
 printf "Connecting..."
 let usableSpiders =
@@ -38,6 +40,7 @@ let tags =
     Console.ReadLine().Trim()
 let splitedTags =
     tags.Split ' '
+    |> Array.toList
 
 printfn "======================================="
 
@@ -45,4 +48,65 @@ printfn "======================================="
 let dir =
     Directory.CreateDirectory "Download" |> ignore
     Directory.CreateDirectory("Download/" + tags).FullName + "\\"
+
+let mainThread = System.Threading.SynchronizationContext ()
+
+let Log (x:string) =
+    use logFile = File.Open ("Download/log.log",FileMode.Append)
+    use stream = new StreamWriter (logFile)
+    stream.WriteLine x
+
+let DownloadPage (page:Result<Page,exn>) = 
+    let DownloadPost post = 
+        let DownloadContent content = async {
+            try
+                match content.Data.Force() with
+                | Ok data ->
+                    File.WriteAllBytes (dir + (NormalizeFileName content.FileName),data)
+
+                    do! Async.SwitchToContext mainThread
+                    printfn "Downloaded! %s" content.FileName
+                | Error e -> raise e
+            with e ->
+                do! Async.SwitchToContext mainThread
+                sprintf @"Error:
+                Page:%A
+                Post:%A
+                Content:%A
+                Exception:%A
+                "
+                    page
+                    post
+                    content
+                    e
+                |> Log}
+        
+        post.Content
+        |> List.map DownloadContent
+        |> Async.Parallel
+        |> Async.RunSynchronously
+        |> ignore
+
+
+    match page with
+    | Ok page ->
+        page
+        |> Seq.map DownloadPost
+        |> ignore
+    | Error e -> Log e.Message
+
+let pages =
+    spiders
+    |> Array.map (Spider.Search splitedTags)
+    |> Array.map (fun spiderResult ->
+        spiderResult
+        |> Seq.takeWhile (fun pageResult ->
+            match pageResult with
+            | Ok x -> Seq.isEmpty x |> not
+            | Error e -> 
+                sprintf "Pages error:%A" e
+                |> Log
+                false))
+    |> Seq.collect (fun x -> x)
+    |> Seq.iter DownloadPage
 
