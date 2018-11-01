@@ -3,7 +3,6 @@
 open HaoKangFramework
 
 module internal KonachanSpiderUtils =
-    open System.Xml
     open SpiderUtils
 
     let PageLimit = 10
