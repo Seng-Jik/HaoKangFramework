@@ -31,7 +31,7 @@ module internal KonachanSpiderUtils =
 
             seq { 
                 for i in posts.ChildNodes ->
-                    let url = i.Attributes.["file_url"] |> UnwrapXmlValue
+                    let url = i.Attributes.["file_url"] |> UnwrapXmlValue |> urlFixer
                     {
                         ID = i.Attributes.["id"] |> UnwrapXmlValue |> uint64
                         PreviewImage = i.Attributes.["preview_url"] 
@@ -39,7 +39,7 @@ module internal KonachanSpiderUtils =
                                         |> urlFixer 
                                         |> DownloadDataLazy
                         Content = [{
-                            Data = url |> urlFixer |> DownloadDataLazy
+                            Data = url |> DownloadDataLazy
                             FileName =  url.[url.LastIndexOf '/' + 1 ..]
                             FileExtName = url.[url.LastIndexOf '.' + 1 ..]
                             Url = url }]
@@ -105,7 +105,7 @@ let Rule34 =
 
 [<Spider>]
 let SafeBooru =
-    let fixer x = "https" + x
+    let fixer x = "https:" + x
     new KonachanSpider ("SafeBooru","https://safebooru.org/index.php",GelbooruFormat,GetPage,fixer)
     :> ISpider
 

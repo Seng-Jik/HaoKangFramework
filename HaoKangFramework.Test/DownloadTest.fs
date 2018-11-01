@@ -7,6 +7,7 @@ open System.IO
 open HaoKangFramework.Spiders
 open DanbooruSpider
 open KonachanSpider
+open HaoKangFramework
 
 [<TestClass>]
 type DownloadTest () =
@@ -38,8 +39,8 @@ type DownloadTest () =
     [<TestMethod>]
     member x.TestAll () =
         Spider.Spiders
-        |> Array.iter (fun (name,spider) ->
-             Test name spider)
+        |> Seq.iter (fun x ->
+             Test x.Key x.Value)
 
     [<TestMethod>]
     member x.Konachan () =

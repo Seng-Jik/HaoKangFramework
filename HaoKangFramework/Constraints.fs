@@ -70,3 +70,5 @@ module public Spider =
             (x :?> PropertyInfo)
                 .GetValue(null) 
                 :?> ISpider)
+        |> dict
+

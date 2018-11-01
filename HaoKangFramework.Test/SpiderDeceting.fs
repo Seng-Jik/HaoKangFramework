@@ -11,13 +11,13 @@ type SpiderDeceting () =
     [<TestMethod>]
     member x.GetSpiders () =
         HaoKangFramework.Spider.Spiders
-        |> Array.iter (printfn "%A")
+        |> Seq.iter (printfn "%A")
 
     [<TestMethod>]
     member x.TestConnection () =
         HaoKangFramework.Spider.Spiders
-        |> Array.iter (fun (name,spider) ->
-            match spider.TestConnection () with
-            | Ok () -> printfn "%s OK!" name
-            | Error e -> printfn "%s failed:%s" name e.Message)
+        |> Seq.iter (fun x ->
+            match x.Value.TestConnection () with
+            | Ok () -> printfn "%s OK!" x.Key
+            | Error e -> printfn "%s failed:%A" x.Key x.Value)
         
