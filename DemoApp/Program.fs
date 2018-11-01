@@ -54,8 +54,6 @@ let dir =
     Directory.CreateDirectory "Download" |> ignore
     Directory.CreateDirectory("Download/" + tags).FullName + "\\"
 
-let mainThread = System.Threading.SynchronizationContext ()
-
 File.Delete ("Download/"+tags+".log")
 let Log (x:string) =
     use logFile = File.Open ("Download/"+tags+".log",FileMode.Append)
@@ -66,6 +64,7 @@ let DownloadPage (page:Result<Page,exn>) =
     let DownloadPost post = 
         let DownloadContent content = async {
             try
+                printfn "Downloading %s" content.FileName
                 match content.Data.Force() with
                 | Ok data ->
                     let fileName = 
@@ -79,7 +78,6 @@ let DownloadPage (page:Result<Page,exn>) =
                     printfn "Downloaded! %s" content.FileName
                 | Error e -> raise e
             with e ->
-                do! Async.SwitchToContext mainThread
                 sprintf @"Error:
                 Page:%A
                 Post:%A
@@ -90,12 +88,14 @@ let DownloadPage (page:Result<Page,exn>) =
                     post
                     content
                     e
-                |> Log}
+                |> Log }
         
+
         post.Content
         |> List.map DownloadContent
         |> Async.Parallel
         |> Async.Ignore
+        
 
 
     match page with
