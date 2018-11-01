@@ -65,11 +65,10 @@ module internal KonachanSpiderUtils =
             member x.Dispose () = ()
             member x.TestConnection () =
                 try
-                    pageGetter xmlUrl 1 [] requestFormat urlFixer x
-                    |> function
-                    | Ok _ -> Ok ()
-                    | Error e -> raise e
-
+                    ApplyUrl requestFormat xmlUrl 1 []
+                    |> DownloadString
+                    |> ignore
+                    Ok ()
                 with e -> Error e
             
             member x.Search(tags:string list): Result<Page,exn> seq = 

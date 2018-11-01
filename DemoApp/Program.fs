@@ -5,6 +5,11 @@ open System.IO
 open HaoKangFramework
 open Utils
 
+printfn "Supported:"
+Spider.Spiders
+|> Seq.iter (fun x -> printfn "%s" x.Key)
+printfn ""
+
 printf "Connecting..."
 let usableSpiders =
     Spider.Spiders
@@ -106,7 +111,7 @@ let pages =
             | Error e -> 
                 sprintf "Pages error:%A" e
                 |> Log
-                false))
+                true))
     |> Seq.collect (fun x -> x)
     |> Seq.iter DownloadPage
 
