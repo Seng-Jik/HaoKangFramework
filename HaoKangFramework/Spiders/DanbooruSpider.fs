@@ -7,7 +7,7 @@ open KonachanSpiderUtils
 module private DanbooruSpiderUtils =
     open HaoKangFramework.SpiderUtils
 
-    let internal GetPage (xmlUrl:string) (pageIndex:int) tags format spider =
+    let internal GetPage (xmlUrl:string) (pageIndex:int) tags format urlFixer spider=
         try
             let xmlDoc =
                 ApplyUrl format xmlUrl pageIndex tags
@@ -23,6 +23,7 @@ module private DanbooruSpiderUtils =
                             | null -> i.SelectSingleNode "source" |> UnwrapXmlText
                             | x -> x.InnerText
                         | x -> x.InnerText
+                        |> urlFixer
                     {
                         ID = i.SelectSingleNode "id" |> UnwrapXmlText |> uint64
                         PreviewImage = i.SelectSingleNode "priview_file_url" |> UnwrapXmlText |> DownloadDataLazy
@@ -42,10 +43,10 @@ open DanbooruSpiderUtils
 
 [<Spider>]
 let Danbooru =
-    new KonachanSpider ("Danbooru","https://danbooru.donmai.us/posts.xml",KonachanFormat,GetPage)
+    new KonachanSpider ("Danbooru","https://danbooru.donmai.us/posts.xml",KonachanFormat,GetPage,NoFixer)
     :> ISpider
 
 [<Spider>]
 let ATFBooru =
-    new KonachanSpider ("ATFBooru","https://atfbooru.ninja/posts.xml",KonachanFormat,GetPage)
+    new KonachanSpider ("ATFBooru","https://atfbooru.ninja/posts.xml",KonachanFormat,GetPage,NoFixer)
     :> ISpider

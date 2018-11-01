@@ -5,7 +5,7 @@ open HaoKangFramework
 module internal KonachanSpiderUtils =
     open SpiderUtils
 
-    let PageLimit = 10
+    let PageLimit = 100
 
     let Rating = function
     | "s" -> Everyone
@@ -16,10 +16,12 @@ module internal KonachanSpiderUtils =
     type private RequestFormat =
         Printf.StringFormat<(string -> int -> int -> string -> string)>
 
+    type UrlFixer = string -> string
+
     let internal ApplyUrl format xmlUrl pageIndex tags =
         sprintf format xmlUrl PageLimit pageIndex (ReduceTags tags)
 
-    let internal GetPage (xmlUrl:string) (pageIndex:int) tags format spider =
+    let internal GetPage (xmlUrl:string) (pageIndex:int) tags format urlFixer spider =
         try
             let xmlDoc =
                 ApplyUrl format xmlUrl pageIndex tags
@@ -32,9 +34,12 @@ module internal KonachanSpiderUtils =
                     let url = i.Attributes.["file_url"] |> UnwrapXmlValue
                     {
                         ID = i.Attributes.["id"] |> UnwrapXmlValue |> uint64
-                        PreviewImage = i.Attributes.["preview_url"] |> UnwrapXmlValue |> DownloadDataLazy
+                        PreviewImage = i.Attributes.["preview_url"] 
+                                        |> UnwrapXmlValue 
+                                        |> urlFixer 
+                                        |> DownloadDataLazy
                         Content = [{
-                            Data = DownloadDataLazy url
+                            Data = url |> urlFixer |> DownloadDataLazy
                             FileName =  url.[url.LastIndexOf '/' + 1 ..]
                             FileExtName = url.[url.LastIndexOf '.' + 1 ..]
                             Url = url }]
@@ -47,8 +52,10 @@ module internal KonachanSpiderUtils =
 
     let KonachanFormat : RequestFormat = "%s?limit=%d&page=%d&tags=%s"
     let GelbooruFormat : RequestFormat = "%s?page=dapi&s=post&q=index&&limit=%d&pid=%d&tags=%s"
+
+    let NoFixer x = x
     
-    type KonachanSpider (spiderName,xmlUrl,requestFormat,pageGetter) =
+    type KonachanSpider (spiderName,xmlUrl,requestFormat,pageGetter,urlFixer) =
         inherit obj ()
         override x.ToString () =
             spiderName + " Spider"
@@ -57,7 +64,7 @@ module internal KonachanSpiderUtils =
             member x.Dispose () = ()
             member x.TestConnection () =
                 try
-                    pageGetter xmlUrl 1 [] requestFormat x
+                    pageGetter xmlUrl 1 [] requestFormat urlFixer x
                     |> function
                     | Ok _ -> Ok ()
                     | Error e -> raise e
@@ -66,43 +73,44 @@ module internal KonachanSpiderUtils =
             
             member x.Search(tags:string list): Result<Page,exn> seq = 
                 Seq.initInfinite (fun i ->
-                    pageGetter xmlUrl i tags requestFormat x)
+                    pageGetter xmlUrl i tags requestFormat urlFixer x)
 
 
 open KonachanSpiderUtils
 
 [<Spider>]
 let Konachan =
-    new KonachanSpider ("Konachan","http://konachan.net/post.xml",KonachanFormat,GetPage) 
+    new KonachanSpider ("Konachan","http://konachan.net/post.xml",KonachanFormat,GetPage,NoFixer) 
     :> ISpider
 
 [<Spider>]
 let Lolibooru =
-    new KonachanSpider ("Lolibooru","https://lolibooru.moe/post.xml",KonachanFormat,GetPage)
+    new KonachanSpider ("Lolibooru","https://lolibooru.moe/post.xml",KonachanFormat,GetPage,NoFixer)
     :> ISpider
 
 //[<Spider>]
 let HypnoHub =
-    new KonachanSpider ("HypnoHub","https://hypnohub.net/post/index.xml",KonachanFormat,GetPage)
+    new KonachanSpider ("HypnoHub","https://hypnohub.net/post/index.xml",KonachanFormat,GetPage,NoFixer)
     :> ISpider
 
 [<Spider>]
 let Gelbooru =
-    new KonachanSpider ("Gelbooru","https://www.youhate.us/index.php",GelbooruFormat,GetPage)
+    new KonachanSpider ("Gelbooru","https://www.youhate.us/index.php",GelbooruFormat,GetPage,NoFixer)
     :> ISpider
 
 [<Spider>]
 let Rule34 =
-    new KonachanSpider ("Rule34","https://rule34.xxx/index.php",GelbooruFormat,GetPage)
+    new KonachanSpider ("Rule34","https://rule34.xxx/index.php",GelbooruFormat,GetPage,NoFixer)
     :> ISpider
 
 [<Spider>]
 let SafeBooru =
-    new KonachanSpider ("SafeBooru","https://safebooru.org/index.php",GelbooruFormat,GetPage)
+    let fixer x = "https" + x
+    new KonachanSpider ("SafeBooru","https://safebooru.org/index.php",GelbooruFormat,GetPage,fixer)
     :> ISpider
 
 //[<Spider>]
 let Yandere =
-    new KonachanSpider ("Yandere","https://yande.re/post.xml",KonachanFormat,GetPage)
+    new KonachanSpider ("Yandere","https://yande.re/post.xml",KonachanFormat,GetPage,NoFixer)
     :> ISpider
 
