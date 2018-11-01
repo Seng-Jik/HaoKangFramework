@@ -51,9 +51,9 @@ let dir =
 
 let mainThread = System.Threading.SynchronizationContext ()
 
-File.Delete "Download/log.log"
+File.Delete ("Download/"+tags+".log")
 let Log (x:string) =
-    use logFile = File.Open ("Download/log.log",FileMode.Append)
+    use logFile = File.Open ("Download/"+tags+".log",FileMode.Append)
     use stream = new StreamWriter (logFile)
     stream.WriteLine x
 
