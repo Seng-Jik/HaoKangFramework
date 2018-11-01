@@ -11,14 +11,18 @@ Excited Library!!!
 ### 搜索图像
 1. 导入这个库到你的F#/C#项目中
 2. open HaoKangFramework.Spider
-3. Spiders是一个(string * ISpider) []，这里面有这个库可以使用的所有爬虫。
+3. Spiders是一个IDirectionary<string,ISpider>，这里面有这个库可以使用的所有爬虫。
 4. 使用TestConnection测试爬虫是否连接良好，并且选出连接良好的爬虫。
 5. 使用Search函数，输入要查询的关键字，即可返回搜索结果。
 
 ### 预览和下载
-1. Search应当返回一个Page seq，这是页面集合，每个页面都有一些图片或者其他的投稿，如果一个Page是空的，那么说明已经到底末页。
+1. Search应当返回一个Result<Page,exn> seq，这是页面集合，每个页面都有一些图片或者其他的投稿，如果一个Page是空的，那么说明已经到底末页。
 2. 遍历Page，Page本身是Post seq，每个Post都是一个投稿。
-3. Post.Preview是预览图像，Post.Content则是一组内容，你需要使用异步工作流来获取它，或者使用Post.ContentUrl获取URL，并且使用其他工具下载。
+3. Post.PreviewImage是预览图像，Post.Content则是一组内容，你需要使用异步工作流来获取它，或者使用Post.ContentUrl获取URL，并且使用其他工具下载。
+
+### 例子程序
+这个例子程序演示了如何使用HaoKangFramework下载给定关键字的所有图片。    
+[例子程序 DemoApp](DemoApp/Program.fs)
 
 ## 已经支持的爬虫
 - Konachan
@@ -42,12 +46,13 @@ Excited Library!!!
 - ExHentai
 
 ## 已经完成的工具包
-- BooruUtils（用于爬取Boorus类网站）
+- KonachanSpider（用于爬取Booru类网站，它对应的为Konachan这些版本较旧的网站）
+- DanbooruSpider（用于爬取Booru类网站，它对应的为Danbooru这些版本较新的网站）
 
 ## 我希望加入开发
 
 1. Fork这个项目
 2. 解析你要爬取的网站
-3. 在HaoKangFramework.Spiders下实现一个ISpider，并提供无参构造函数，HaoKangFramework将自动检测到这个类。
+3. 在HaoKangFramework.Spiders下实现一个ISpider，然后使用这个ISpider在某个模块中创建属性为Spider的静态常量。
 4. Pull Request，与世界分享你的成果
 
