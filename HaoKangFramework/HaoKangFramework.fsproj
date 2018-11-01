@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <Compile Include="Constraints.fs" />
+    <Compile Include="SpiderUtils.fs" />
+    <Compile Include="Spiders\KonachanSpider.fs" />
     <Compile Include="Spiders\DanbooruSpider.fs" />
   </ItemGroup>
 

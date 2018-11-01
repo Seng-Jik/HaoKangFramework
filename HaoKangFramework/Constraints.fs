@@ -2,18 +2,17 @@ namespace HaoKangFramework
 
 open System
 
-exception DownloadFailed
-exception NoData
-
 type AgeGrading =
 | Everyone
 | R15
 | R18
 | Unknown
 
+exception NoData
+
 [<Struct>]
 type Content = {
-    Data : Result<byte[],exn> Async
+    Data : Result<byte[],exn> Lazy
     FileName : string
     FileExtName : string
     Url : string }
@@ -22,7 +21,7 @@ type Content = {
 [<Struct>]
 type Post = {
     ID : uint64
-    Preview : Result<byte[],exn> Async
+    PreviewImage : Result<byte[],exn> Lazy
     Content : Content list
     AgeGrading : AgeGrading
     Author : string
@@ -33,29 +32,41 @@ and Page = Post seq
 
 and ISpider =
     inherit IDisposable
-    abstract TestConnection : unit -> bool
-    abstract Search : tags : string list -> Page seq
+    abstract TestConnection : unit -> Result<unit,exn>
+    abstract Search : tags : string list -> Result<Page,exn> seq
+
+type Spider () =
+    inherit System.Attribute ()
 
 module public Utils =
     let inline NormalizeFileName (x : string) = 
         x.Trim(':','*','!','#','?','%','<','>','|','\"','\\','/').Trim()
 
 module public Spider =
+    open System.Reflection
+
     let inline TestConnection spider =
         (spider :> ISpider).TestConnection ()
 
     let inline Search param spider =
         (spider :> ISpider).Search param
 
-    let Spiders = 
-        System.Reflection.Assembly.GetExecutingAssembly().GetTypes()
-        |> Array.filter (fun x ->
-            (x |> string).StartsWith "HaoKangFramework.Spiders.")
-        |> Array.filter (fun x ->
-            x.IsClass && 
-            x.IsPublic &&
-            x.GetInterfaces() |> Array.contains typeof<ISpider> &&
-            x.GetConstructors() |> Array.exists (fun x -> x.GetParameters() |> Array.isEmpty))
-        |> Array.map (fun x ->
-            (x.Name,(fun () -> x.Assembly.CreateInstance(x.FullName) :?> ISpider)))
 
+    let Spiders =
+        System
+            .Reflection
+            .Assembly
+            .GetExecutingAssembly()
+            .GetTypes()
+        |> Array.filter (fun x ->
+            FSharp.Reflection.FSharpType.IsModule x)
+        |> Array.collect (fun x ->
+            x.GetMembers ())
+        |> Array.filter (fun x ->
+            x.GetCustomAttributes()
+            |> Seq.exists (fun x -> x :? Spider))
+        |> Array.map (fun x ->
+            x.Name,
+            (x :?> PropertyInfo)
+                .GetValue(null) 
+                :?> ISpider)

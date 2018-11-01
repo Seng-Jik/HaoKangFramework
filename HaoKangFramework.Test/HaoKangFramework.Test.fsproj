@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="FrameworkTest.fs" />
     <Compile Include="SpiderDeceting.fs" />
+    <Compile Include="DownloadTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

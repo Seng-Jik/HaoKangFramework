@@ -1,8 +1,6 @@
-﻿open HaoKangFramework
-open HaoKangFramework.Utils
-open System.IO    
+﻿open System.IO    
 open System
-
+(*
 let searchResult =
     let searchParam = 
         printfn "输入要查询的关键词，用空格分隔："
@@ -63,3 +61,4 @@ let DownloadSite name (pageSeq : Page seq) =
 
 searchResult
 |> Seq.iter (fun (name,x) -> DownloadSite name x)
+*)
