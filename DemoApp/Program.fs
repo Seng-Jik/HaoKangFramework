@@ -51,6 +51,7 @@ let dir =
 
 let mainThread = System.Threading.SynchronizationContext ()
 
+File.Delete "Download/log.log"
 let Log (x:string) =
     use logFile = File.Open ("Download/log.log",FileMode.Append)
     use stream = new StreamWriter (logFile)
@@ -91,8 +92,7 @@ let DownloadPage (page:Result<Page,exn>) =
     match page with
     | Ok page ->
         page
-        |> Seq.map DownloadPost
-        |> ignore
+        |> Seq.iter DownloadPost
     | Error e -> Log e.Message
 
 let pages =
