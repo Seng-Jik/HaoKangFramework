@@ -68,7 +68,13 @@ let DownloadPage (page:Result<Page,exn>) =
             try
                 match content.Data.Force() with
                 | Ok data ->
-                    File.WriteAllBytes (dir + (NormalizeFileName content.FileName),data)
+                    let fileName = 
+                        let org = dir + (NormalizeFileName content.FileName)
+                        if org.Length > 247 then
+                            org.[0..200] + content.FileExtName
+                        else
+                            org
+                    File.WriteAllBytes (fileName,data)
 
                     do! Async.SwitchToContext mainThread
                     printfn "Downloaded! %s" content.FileName
