@@ -54,6 +54,7 @@ module internal KonachanSpiderUtils =
     let GelbooruFormat : RequestFormat = "%s?page=dapi&s=post&q=index&&limit=%d&pid=%d&tags=%s"
 
     let NoFixer x = x
+    let HttpsFixer x = "https:" + x
     
     type KonachanSpider (spiderName,xmlUrl,requestFormat,pageGetter,urlFixer) =
         inherit obj ()
@@ -88,9 +89,9 @@ let Lolibooru =
     new KonachanSpider ("Lolibooru","https://lolibooru.moe/post.xml",KonachanFormat,GetPage,NoFixer)
     :> ISpider
 
-//[<Spider>]
+[<Spider>]
 let HypnoHub =
-    new KonachanSpider ("HypnoHub","https://hypnohub.net/post/index.xml",KonachanFormat,GetPage,NoFixer)
+    new KonachanSpider ("HypnoHub","https://hypnohub.net/post/index.xml",KonachanFormat,GetPage,HttpsFixer)
     :> ISpider
 
 [<Spider>]
@@ -105,8 +106,7 @@ let Rule34 =
 
 [<Spider>]
 let SafeBooru =
-    let fixer x = "https:" + x
-    new KonachanSpider ("SafeBooru","https://safebooru.org/index.php",GelbooruFormat,GetPage,fixer)
+    new KonachanSpider ("SafeBooru","https://safebooru.org/index.php",GelbooruFormat,GetPage,HttpsFixer)
     :> ISpider
 
 //[<Spider>]
