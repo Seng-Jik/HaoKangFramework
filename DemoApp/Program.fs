@@ -71,12 +71,11 @@ let DownloadPage (page:Result<Page,exn>) =
                     let fileName = 
                         let org = dir + (NormalizeFileName content.FileName)
                         if org.Length > 247 then
-                            org.[0..200] + content.FileExtName
+                            org.[0..200] + "." + content.FileExtName
                         else
                             org
                     File.WriteAllBytes (fileName,data)
 
-                    do! Async.SwitchToContext mainThread
                     printfn "Downloaded! %s" content.FileName
                 | Error e -> raise e
             with e ->
@@ -96,14 +95,16 @@ let DownloadPage (page:Result<Page,exn>) =
         post.Content
         |> List.map DownloadContent
         |> Async.Parallel
-        |> Async.RunSynchronously
-        |> ignore
+        |> Async.Ignore
 
 
     match page with
     | Ok page ->
         page
-        |> Seq.iter DownloadPost
+        |> Seq.map DownloadPost
+        |> Async.Parallel
+        |> Async.RunSynchronously
+        |> ignore
     | Error e -> Log e.Message
 
 let pages =
