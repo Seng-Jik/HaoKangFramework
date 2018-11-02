@@ -49,37 +49,46 @@ let splitedTags =
     tags.Split ' '
     |> Array.toList
 
+let dir =
+    Directory.CreateDirectory "Download" |> ignore
+    match tags with
+    | "" ->
+        Directory.CreateDirectory("Download/no_tags").FullName + "\\"
+    | tags ->
+        Directory.CreateDirectory("Download/" + tags).FullName + "\\"
+
 let logFile =
     match tags with
     | "" -> "Download/no_tags.log"
     | x -> "Download/"+x+".log"
-let logMutex = new Mutex()
 File.Delete logFile
-let Log (x:string) =
-    logMutex.WaitOne() |> ignore
-    use logFile = File.Open (logFile,FileMode.Append)
-    use stream = new StreamWriter (logFile)
-    stream.WriteLine x
-    logMutex.ReleaseMutex()
 
+let Log (x:string) =
+    (fun () ->
+        use logFile = File.Open (logFile,FileMode.Append)
+        use stream = new StreamWriter (logFile)
+        stream.WriteLine x)
+    |> lock logFile
+
+let csvFile =
+    let fs =
+        match tags with
+        | "" -> "Download/no_tags.csv"
+        | x -> "Download/"+x+".csv"
+        |> System.IO.File.OpenWrite
+    new StreamWriter(fs)
+
+let consoleLock = obj()
 try
     printfn "======================================="
-
-    let dir =
-        Directory.CreateDirectory "Download" |> ignore
-        match tags with
-        | "" ->
-            Directory.CreateDirectory("Download/no_tags").FullName + "\\"
-        | tags ->
-            Directory.CreateDirectory("Download/" + tags).FullName + "\\"
 
     let DownloadPage (page:Result<Page,exn>) = 
         let DownloadPost post = 
             let DownloadContent content = async {
                 try
-                    printfn "Downloading %s" content.FileName
+                    (fun () -> printfn "Downloading %s" content.FileName)
+                    |> lock consoleLock
 
-                    do! Async.SwitchToThreadPool()
                     match content.Data.Force() with
                     | Ok data ->
                         let fileName = 
@@ -94,7 +103,13 @@ try
                             else
                                 org
                         File.WriteAllBytes (fileName,data)
-                        printfn "Downloaded! %s" content.FileName
+
+                        (fun () ->
+                            csvFile.WriteLine (sprintf "%A,%d,%s,%s" post.FromSpider post.ID content.FileName content.Url))
+                        |> lock csvFile
+                        (fun () ->
+                            printfn "Downloaded! %s" content.FileName)
+                        |> lock consoleLock
                     | Error e -> raise e
                 with e ->
                     sprintf @"Error:
@@ -138,8 +153,7 @@ try
                 sprintf "Pages error:%A" e
                 |> Log
                 true))
-    |> Seq.collect (fun x -> x)
-    |> Seq.iter DownloadPage
+    |> Array.Parallel.iter (Seq.iter DownloadPage)
 
 with ex ->
     sprintf @"
@@ -147,3 +161,5 @@ with ex ->
     %A"
         ex
     |> Log
+
+csvFile.Close()
