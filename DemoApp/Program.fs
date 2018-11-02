@@ -166,4 +166,5 @@ with ex ->
     printfn "%s" msg
 
 csvFile.Close()
+Console.Beep()
 Console.ReadKey () |> ignore
