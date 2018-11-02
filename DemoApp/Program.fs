@@ -49,14 +49,22 @@ let splitedTags =
 
 printfn "======================================="
 
-
 let dir =
     Directory.CreateDirectory "Download" |> ignore
-    Directory.CreateDirectory("Download/" + tags).FullName + "\\"
+    match tags with
+    | "" ->
+        Directory.CreateDirectory("Download/no_tags").FullName + "\\"
+    | tags ->
+        Directory.CreateDirectory("Download/" + tags).FullName + "\\"
 
-File.Delete ("Download/"+tags+".log")
+let logFile =
+    match tags with
+    | "" -> "Download/no_tags.log"
+    | x -> "Download/"+x+".log"
+
+File.Delete logFile
 let Log (x:string) =
-    use logFile = File.Open ("Download/"+tags+".log",FileMode.Append)
+    use logFile = File.Open (logFile,FileMode.Append)
     use stream = new StreamWriter (logFile)
     stream.WriteLine x
 
@@ -65,16 +73,22 @@ let DownloadPage (page:Result<Page,exn>) =
         let DownloadContent content = async {
             try
                 printfn "Downloading %s" content.FileName
+
+                do! Async.SwitchToThreadPool()
                 match content.Data.Force() with
                 | Ok data ->
                     let fileName = 
                         let org = dir + (NormalizeFileName content.FileName)
                         if org.Length > 247 then
-                            org.[0..200] + "." + content.FileExtName
+                            let newPath = 
+                                org.[0..100] + "." + content.FileExtName
+                            if File.Exists newPath then
+                                (string (org.GetHashCode())) + "." + content.FileExtName
+                            else
+                                newPath
                         else
                             org
                     File.WriteAllBytes (fileName,data)
-
                     printfn "Downloaded! %s" content.FileName
                 | Error e -> raise e
             with e ->

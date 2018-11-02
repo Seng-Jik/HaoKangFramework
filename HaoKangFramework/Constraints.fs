@@ -40,7 +40,10 @@ type Spider () =
 
 module public Utils =
     let inline NormalizeFileName (x : string) = 
-        x.Trim(':','*','!','#','?','%','<','>','|','\"','\\','/').Trim()
+        let mutable ret = x
+        [":";"*";"!";"#";"?";"%";"<";">";"|";"\"";"\\";"/"]
+        |> List.iter (fun c -> ret <- ret.Replace (c,""))
+        ret.Trim()
 
 module public Spider =
     open System.Reflection
