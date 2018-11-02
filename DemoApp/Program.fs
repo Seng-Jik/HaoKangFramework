@@ -86,9 +86,9 @@ try
                             let org = dir + (NormalizeFileName content.FileName)
                             if org.Length > 247 then
                                 let newPath = 
-                                    org.[0..100] + "." + content.FileExtName
+                                    org.[0..200] + "." + content.FileExtName
                                 if File.Exists newPath then
-                                    (string (org.GetHashCode())) + "." + content.FileExtName
+                                    dir + (string (org.GetHashCode())) + "." + content.FileExtName
                                 else
                                     newPath
                             else

@@ -28,7 +28,7 @@ type DownloadTest () =
                         let data = content.Data.Force ()
                         match data with
                         | Ok data ->
-                            File.WriteAllBytes (name + "\\" + content.FileName,data)
+                            File.WriteAllBytes (name + "\\" + Utils.NormalizeFileName(content.FileName),data)
                         | Error e -> printfn "%s download failed:%s" name e.Message })
                 |> Async.Parallel
                 |> Async.Ignore
