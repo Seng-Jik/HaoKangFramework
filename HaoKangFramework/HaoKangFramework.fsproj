@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.0.1</Version>
+    <Authors>SmallLuma</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Company>SmallLuma</Company>
+    <RepositoryUrl>https://github.com/SmallLuma/HaoKangFramework</RepositoryUrl>
+    <RepositoryType>Github</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
