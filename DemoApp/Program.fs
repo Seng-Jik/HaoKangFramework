@@ -47,16 +47,6 @@ let splitedTags =
     tags.Split ' '
     |> Array.toList
 
-printfn "======================================="
-
-let dir =
-    Directory.CreateDirectory "Download" |> ignore
-    match tags with
-    | "" ->
-        Directory.CreateDirectory("Download/no_tags").FullName + "\\"
-    | tags ->
-        Directory.CreateDirectory("Download/" + tags).FullName + "\\"
-
 let logFile =
     match tags with
     | "" -> "Download/no_tags.log"
@@ -68,60 +58,71 @@ let Log (x:string) =
     use stream = new StreamWriter (logFile)
     stream.WriteLine x
 
-let DownloadPage (page:Result<Page,exn>) = 
-    let DownloadPost post = 
-        let DownloadContent content = async {
-            try
-                printfn "Downloading %s" content.FileName
+try
+    printfn "======================================="
 
-                do! Async.SwitchToThreadPool()
-                match content.Data.Force() with
-                | Ok data ->
-                    let fileName = 
-                        let org = dir + (NormalizeFileName content.FileName)
-                        if org.Length > 247 then
-                            let newPath = 
-                                org.[0..100] + "." + content.FileExtName
-                            if File.Exists newPath then
-                                (string (org.GetHashCode())) + "." + content.FileExtName
+    let dir =
+        Directory.CreateDirectory "Download" |> ignore
+        match tags with
+        | "" ->
+            Directory.CreateDirectory("Download/no_tags").FullName + "\\"
+        | tags ->
+            Directory.CreateDirectory("Download/" + tags).FullName + "\\"
+
+    let DownloadPage (page:Result<Page,exn>) = 
+        let DownloadPost post = 
+            let DownloadContent content = async {
+                try
+                    printfn "Downloading %s" content.FileName
+
+                    do! Async.SwitchToThreadPool()
+                    match content.Data.Force() with
+                    | Ok data ->
+                        let fileName = 
+                            let org = dir + (NormalizeFileName content.FileName)
+                            if org.Length > 247 then
+                                let newPath = 
+                                    org.[0..100] + "." + content.FileExtName
+                                if File.Exists newPath then
+                                    (string (org.GetHashCode())) + "." + content.FileExtName
+                                else
+                                    newPath
                             else
-                                newPath
-                        else
-                            org
-                    File.WriteAllBytes (fileName,data)
-                    printfn "Downloaded! %s" content.FileName
-                | Error e -> raise e
-            with e ->
-                sprintf @"Error:
-                Page:%A
-                Post:%A
-                Content:%A
-                Exception:%A
-                "
-                    page
-                    post
-                    content
-                    e
-                |> Log }
+                                org
+                        File.WriteAllBytes (fileName,data)
+                        printfn "Downloaded! %s" content.FileName
+                    | Error e -> raise e
+                with e ->
+                    sprintf @"Error:
+                    Page:%A
+                    Post:%A
+                    Content:%A
+                    Exception:%A
+                    "
+                        page
+                        post
+                        content
+                        e
+                    |> Log }
         
 
-        post.Content
-        |> List.map DownloadContent
-        |> Async.Parallel
-        |> Async.Ignore
+            post.Content
+            |> List.map DownloadContent
+            |> Async.Parallel
+            |> Async.Ignore
         
 
 
-    match page with
-    | Ok page ->
-        page
-        |> Seq.map DownloadPost
-        |> Async.Parallel
-        |> Async.RunSynchronously
-        |> ignore
-    | Error e -> Log e.Message
+        match page with
+        | Ok page ->
+            page
+            |> Seq.map DownloadPost
+            |> Async.Parallel
+            |> Async.RunSynchronously
+            |> ignore
+        | Error e -> Log e.Message
 
-let pages =
+
     spiders
     |> Array.map (Spider.Search splitedTags)
     |> Array.map (fun spiderResult ->
@@ -136,3 +137,9 @@ let pages =
     |> Seq.collect (fun x -> x)
     |> Seq.iter DownloadPage
 
+with ex ->
+    sprintf @"
+    致命错误：
+    %A"
+        ex
+    |> Log
