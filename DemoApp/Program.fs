@@ -154,12 +154,16 @@ try
                 |> Log
                 true))
     |> Array.Parallel.iter (Seq.iter DownloadPage)
+    printfn "=============== Finished! ==============="
 
 with ex ->
-    sprintf @"
-    致命错误：
-    %A"
-        ex
-    |> Log
+    let msg =
+        sprintf @"
+        致命错误：
+        %A"
+            ex
+    Log msg
+    printfn "%s" msg
 
 csvFile.Close()
+Console.ReadKey () |> ignore
