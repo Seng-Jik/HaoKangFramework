@@ -4,6 +4,7 @@ open System.Net
 open System.IO
 open HaoKangFramework
 open Utils
+open System.Threading
 
 printfn "Supported:"
 Spider.Spiders
@@ -52,12 +53,14 @@ let logFile =
     match tags with
     | "" -> "Download/no_tags.log"
     | x -> "Download/"+x+".log"
-
+let logMutex = new Mutex()
 File.Delete logFile
 let Log (x:string) =
+    logMutex.WaitOne() |> ignore
     use logFile = File.Open (logFile,FileMode.Append)
     use stream = new StreamWriter (logFile)
     stream.WriteLine x
+    logMutex.ReleaseMutex()
 
 try
     printfn "======================================="
