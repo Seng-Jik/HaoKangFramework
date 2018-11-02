@@ -43,6 +43,7 @@ printfn ""
 printfn "Input your search tags(split by space):"
 let tags =
     Console.ReadLine().Trim()
+Console.Title <- tags
 let splitedTags =
     tags.Split ' '
     |> Array.toList
