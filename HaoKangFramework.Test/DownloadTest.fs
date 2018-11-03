@@ -70,4 +70,8 @@ type DownloadTest () =
     [<TestMethod>]
     member x.ATFBooru () =
         Test "ATFBooru" ATFBooru
+
+    [<TestMethod>]
+    member x.Behoimi () =
+        Test "Behoimi" Behoimi
         
