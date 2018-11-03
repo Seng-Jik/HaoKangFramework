@@ -134,3 +134,4 @@ let Yandere =
 [<Spider>]
 let Behoimi =
     new KonachanSpider ("Behoimi","http://behoimi.org",RequestFormats.HypnoHub,PostUrlFormats.Konachan,GetPage,NoFixer)
+    :> ISpider
