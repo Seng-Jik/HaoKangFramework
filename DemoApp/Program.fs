@@ -70,13 +70,22 @@ let Log (x:string) =
         stream.WriteLine x)
     |> lock logFile
 
-let csvFile =
+let csvFile,donwloadedPosts =
     let fs =
-        match tags with
-        | "" -> "Download/no_tags.csv"
-        | x -> "Download/"+x+".csv"
-        |> System.IO.File.OpenWrite
-    new StreamWriter(fs)
+        let fileName =
+            match tags with
+            | "" -> "Download/no_tags.csv"
+            | x -> "Download/"+x+".csv"
+        
+        let donwloaded =
+            System.IO.File.ReadAllLines fileName
+            |> Array.filter (String.IsNullOrWhiteSpace >> not)
+            |> Array.map (fun x -> 
+                let c = x.Split ','
+                c.[1],(c.[2] |> uint64))
+        
+        System.IO.File.Open (fileName,FileMode.Append),donwloaded
+    new StreamWriter(fst fs),snd fs
 
 let consoleLock = obj()
 try
@@ -131,11 +140,13 @@ try
                         e
                     |> Log }
         
-
-            post.Content
-            |> List.map DownloadContent
-            |> Async.Parallel
-            |> Async.Ignore
+            if Array.contains (post.FromSpider |> string,post.ID) donwloadedPosts |> not then
+                post.Content
+                |> List.map DownloadContent
+                |> Async.Parallel
+                |> Async.Ignore
+            else
+                async { return () }
         
 
 
