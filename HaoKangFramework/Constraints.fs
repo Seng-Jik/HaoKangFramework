@@ -26,6 +26,8 @@ type Post = {
     AgeGrading : AgeGrading
     Author : string
     Tags : string[]
+    PostUrl : string
+    Score : float voption
     FromSpider : ISpider }
 
 and Page = Post seq

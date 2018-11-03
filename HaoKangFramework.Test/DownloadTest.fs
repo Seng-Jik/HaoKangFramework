@@ -34,13 +34,6 @@ type DownloadTest () =
                 |> Async.Ignore
                 |> Async.RunSynchronously
             | Error e -> printfn "%s error:%s" name e.Message)
-        
-
-    [<TestMethod>]
-    member x.TestAll () =
-        Spider.Spiders
-        |> Seq.iter (fun x ->
-             Test x.Key x.Value)
 
     [<TestMethod>]
     member x.Konachan () =
