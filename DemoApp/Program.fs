@@ -6,23 +6,10 @@ open HaoKangFramework
 open Utils
 open System.Threading
 
-printfn "Supported:"
-Spider.Spiders
-|> Seq.iter (fun x -> printfn "%s" x.Key)
-printfn ""
-
-printf "Connecting..."
 let usableSpiders =
     Spider.Spiders
-    |> Seq.map (fun kv ->
-        async {
-            return (Spider.TestConnection kv.Value,kv.Key,kv.Value) })
-    |> Async.Parallel
-    |> Async.RunSynchronously
-    |> Array.filter (fun (a,_,_) -> a = Ok ())
-    |> Array.map (fun (_,b,c) -> b,c)
-printfn "OK!"
-printfn ""
+    |> Seq.map (fun kv -> kv.Key,kv.Value)
+    |> Seq.toArray
 
 printfn "Usable spiders:"
 usableSpiders
@@ -31,12 +18,22 @@ usableSpiders
 printfn "Select your spiders(split by space):"
 
 let spiders =
-    Console.ReadLine().Trim().Split ' '
-    |> Array.map (fun x -> 
-        usableSpiders.[x |> int |> (+) -1] |> snd)
+    let selectedSpiders =
+        Console.ReadLine().Trim().Split ' '
+        |> Array.map (fun x -> 
+            usableSpiders.[x |> int |> (+) -1] |> snd)
+    printfn "Testing..."
+    selectedSpiders
+    |> Seq.map (fun spd ->
+        async {
+            return Spider.TestConnection spd,spd })
+    |> Async.Parallel
+    |> Async.RunSynchronously
+    |> Array.filter (fun (a,_) -> a = Ok ())
+    |> Array.map snd
 printfn ""
 
-printfn "Selected spiders:"
+printfn "Using spiders:"
 spiders
 |> Array.iter (printfn "%A")
 printfn ""
