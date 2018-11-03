@@ -89,28 +89,35 @@ try
                     (fun () -> printfn "Downloading %s" content.FileName)
                     |> lock consoleLock
 
-                    match content.Data.Force() with
-                    | Ok data ->
-                        let fileName = 
-                            let org = dir + (NormalizeFileName content.FileName)
-                            if org.Length > 247 then
-                                let newPath = 
-                                    org.[0..200] + "." + content.FileExtName
-                                if File.Exists newPath then
-                                    dir + (string (org.GetHashCode())) + "." + content.FileExtName
-                                else
-                                    newPath
-                            else
-                                org
-                        File.WriteAllBytes (fileName,data)
+                    let fileName = 
+                        let org = dir + (NormalizeFileName content.FileName)
+                        if org.Length > 247 then
+                            dir + (string (org.GetHashCode())) + "." + content.FileExtName
+                        else
+                            org
+                    
+                    if File.Exists fileName |> not then
+                        match content.Data.Force() with
+                        | Error e -> raise e
+                        | Ok data ->
+                            File.WriteAllBytes (fileName,data)
 
-                        (fun () ->
-                            csvFile.WriteLine (sprintf "%A,%d,%s,%s" post.FromSpider post.ID content.FileName content.Url))
-                        |> lock csvFile
-                        (fun () ->
-                            printfn "Downloaded! %s" content.FileName)
-                        |> lock consoleLock
-                    | Error e -> raise e
+                            (fun () ->
+                                csvFile.WriteLine(
+                                    sprintf
+                                        "%A,%d,%s,%s,%A,%A,%s,%A" 
+                                        post.FromSpider
+                                        post.ID
+                                        content.FileName
+                                        post.PostUrl 
+                                        post.Score
+                                        post.AgeGrading
+                                        post.Author
+                                        post.Tags))
+                            |> lock csvFile
+                            (fun () ->
+                                printfn "Downloaded! %s" content.FileName)
+                            |> lock consoleLock
                 with e ->
                     sprintf @"Error:
                     Page:%A
