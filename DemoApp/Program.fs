@@ -78,11 +78,13 @@ let csvFile,donwloadedPosts =
             | x -> "Download/"+x+".csv"
         
         let donwloaded =
-            System.IO.File.ReadAllLines fileName
-            |> Array.filter (String.IsNullOrWhiteSpace >> not)
-            |> Array.map (fun x -> 
-                let c = x.Split ','
-                c.[1],(c.[2] |> uint64))
+            try
+                System.IO.File.ReadAllLines fileName
+                |> Array.filter (String.IsNullOrWhiteSpace >> not)
+                |> Array.map (fun x -> 
+                    let c = x.Split ','
+                    c.[1],(c.[2] |> uint64))
+            with _ -> Array.empty
         
         System.IO.File.Open (fileName,FileMode.Append),donwloaded
     new StreamWriter(fst fs),snd fs
