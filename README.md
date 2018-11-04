@@ -48,6 +48,7 @@ Excited Library!!!
 - ExHentai
 - Zerochan
 - 3DBooru
+- AllGirl
 
 ## 已经完成的工具包
 - KonachanSpider（用于爬取Booru类网站，它对应的为Konachan这些版本较旧的网站）
