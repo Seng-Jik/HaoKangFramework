@@ -89,8 +89,7 @@ let csvFile,downloadedPosts =
         System.IO.File.Open (fileName,FileMode.Append),donwloaded
     new StreamWriter(fst fs),snd fs
 
-downloadedPosts
-|> Array.iter (fun (spider,x) -> printfn "Downloaded %s:%u" spider x)
+printfn "Downloaded images:%d" downloadedPosts.Length
 printfn "Press any key to start..."
 System.Console.ReadKey () |> ignore
 
