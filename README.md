@@ -36,19 +36,22 @@ Excited Library!!!
 - Rule34
 - SafeBooru
 - HypnoHub
+- TheBigImageBoard
 
 ## 未来将要支持的爬虫
 - iwara(Videos)
 - ecchi.iwara(Videos)
 - iwara(Images)
 - ecchi.iwara(Images)
-- Chan.SankakuComplex
-- Idol.SankakuComplex
+- Chan.SankakuComplex(参考https://github.com/CryShana/Sankaku-Channel-Downloader)
+- Idol.SankakuComplex(参考https://github.com/CryShana/Sankaku-Channel-Downloader)
 - Pixiv
 - ExHentai
 - Zerochan
-- 3DBooru
+- 3DBooru(Behoimi.org)
 - AllGirl
+- TheDoujin(http://thedoujin.com)
+- 
 
 ## 已经完成的工具包
 - KonachanSpider（用于爬取Booru类网站，它对应的为Konachan这些版本较旧的网站）
