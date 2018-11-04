@@ -72,6 +72,5 @@ type DownloadTest () =
         Test "ATFBooru" ATFBooru
 
     [<TestMethod>]
-    member x.Behoimi () =
-        Test "Behoimi" Behoimi
-        
+    member x.TheBigImageBoard () =
+        Test "TheBigImageBoard" TheBigImageBoard

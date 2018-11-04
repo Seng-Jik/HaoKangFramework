@@ -5,7 +5,7 @@ open HaoKangFramework
 module internal KonachanSpiderUtils =
     open SpiderUtils
 
-    let PageLimit = 100
+    let PageLimit = 50
 
     let Rating = function
     | "s" -> Everyone
@@ -134,4 +134,9 @@ let Yandere =
 [<Spider>]
 let Behoimi =
     new KonachanSpider ("Behoimi","http://behoimi.org",RequestFormats.HypnoHub,PostUrlFormats.Konachan,GetPage,NoFixer)
+    :> ISpider
+
+[<Spider>]
+let TheBigImageBoard =
+    new KonachanSpider ("TheBigImageBoard","http://tbib.org",RequestFormats.Gelbooru,PostUrlFormats.Gelbooru,GetPage,NoFixer)
     :> ISpider

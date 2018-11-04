@@ -76,11 +76,13 @@ let csvFile,donwloadedPosts =
         
         let donwloaded =
             try
-                System.IO.File.ReadAllLines fileName
-                |> Array.filter (String.IsNullOrWhiteSpace >> not)
-                |> Array.map (fun x -> 
-                    let c = x.Split ','
-                    c.[0],(c.[1] |> uint64))
+                System.IO.Directory.GetFiles ("Download/*.csv")
+                |> Array.collect (fun fileName -> 
+                    System.IO.File.ReadAllLines fileName
+                    |> Array.filter (String.IsNullOrWhiteSpace >> not)
+                    |> Array.map (fun x -> 
+                        let c = x.Split ','
+                        c.[0],(c.[1] |> uint64)))
             with _ -> Array.empty
         
         System.IO.File.Open (fileName,FileMode.Append),donwloaded
