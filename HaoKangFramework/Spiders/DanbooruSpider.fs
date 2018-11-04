@@ -12,7 +12,7 @@ module private DanbooruSpiderUtils =
         let Danbooru : RequestFormat = "%s/posts.xml?limit=%d&page=%d&tags=%s"
 
     module PostUrlFormats = 
-        let Danbooru : PostUrlFormat = "Error%s%u"
+        let Danbooru : PostUrlFormat = "%s/posts/%u"
 
     let GetPage (url:string) (pageIndex:int) tags format urlFixer postUrlFormat spider=
         try
