@@ -67,7 +67,7 @@ let Log (x:string) =
         stream.WriteLine x)
     |> lock logFile
 
-let csvFile,donwloadedPosts =
+let csvFile,downloadedPosts =
     let fs =
         let fileName =
             match tags with
@@ -76,7 +76,8 @@ let csvFile,donwloadedPosts =
         
         let donwloaded =
             try
-                System.IO.Directory.GetFiles ("Download/*.csv")
+                System.IO.Directory.GetFiles ("Download")
+                |> Array.filter (fun x -> x.ToLower().EndsWith ".csv")
                 |> Array.collect (fun fileName -> 
                     System.IO.File.ReadAllLines fileName
                     |> Array.filter (String.IsNullOrWhiteSpace >> not)
@@ -87,6 +88,11 @@ let csvFile,donwloadedPosts =
         
         System.IO.File.Open (fileName,FileMode.Append),donwloaded
     new StreamWriter(fst fs),snd fs
+
+downloadedPosts
+|> Array.iter (fun (spider,x) -> printfn "Downloaded %s:%u" spider x)
+printfn "Press any key to start..."
+System.Console.ReadKey () |> ignore
 
 let consoleLock = obj()
 try
@@ -113,17 +119,17 @@ try
                             File.WriteAllBytes (fileName,data)
 
                             (fun () ->
-                                csvFile.WriteLine(
-                                    sprintf
-                                        "%A,%d,%s,%s,%A,%A,%s,%A" 
-                                        post.FromSpider
-                                        post.ID
-                                        content.FileName
-                                        post.PostUrl 
-                                        post.Score
-                                        post.AgeGrading
-                                        post.Author
-                                        post.Tags))
+                                sprintf
+                                    "%A,%d,%s,%s,%A,%A,%s" 
+                                    post.FromSpider
+                                    post.ID
+                                    content.FileName
+                                    post.PostUrl 
+                                    post.Score
+                                    post.AgeGrading
+                                    post.Author
+                                |> csvFile.WriteLine
+                                csvFile.Flush ())
                             |> lock csvFile
                             (fun () ->
                                 printfn "Downloaded! %s" content.FileName)
@@ -141,7 +147,7 @@ try
                         e
                     |> Log }
         
-            if Array.contains (post.FromSpider |> string,post.ID) donwloadedPosts |> not then
+            if Array.contains (post.FromSpider |> string,post.ID) downloadedPosts |> not then
                 post.Content
                 |> List.map DownloadContent
                 |> Async.Parallel
