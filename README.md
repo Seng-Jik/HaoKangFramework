@@ -28,7 +28,7 @@ Excited Library!!!
 
 ## 已经支持的爬虫
 - Konachan
-- Yandere（由于网络问题尚未测试）
+- Yandere
 - Gelbooru
 - Danbooru
 - ATFBooru
