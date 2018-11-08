@@ -33,7 +33,7 @@ module internal KonachanSpiderUtils =
 
             seq { 
                 for i in posts.ChildNodes ->
-                    let url = i.Attributes.["file_url"] |> UnwrapXmlValue |> urlFixer
+                    let imageUrl = i.Attributes.["file_url"] |> UnwrapXmlValue |> urlFixer
                     let id = i.Attributes.["id"] |> UnwrapXmlValue |> uint64
                     {
                         ID = id
@@ -42,10 +42,10 @@ module internal KonachanSpiderUtils =
                                         |> urlFixer 
                                         |> DownloadDataLazy
                         Content = [{
-                            Data = url |> DownloadDataLazy
-                            FileName =  url.[url.LastIndexOf '/' + 1 ..]
-                            FileExtName = url.[url.LastIndexOf '.' + 1 ..]
-                            Url = url }]
+                            Data = imageUrl |> DownloadDataLazy
+                            FileName =  imageUrl.[imageUrl.LastIndexOf '/' + 1 ..]
+                            FileExtName = imageUrl.[imageUrl.LastIndexOf '.' + 1 ..]
+                            Url = imageUrl }]
                         Score = 
                             try
                                 i.Attributes.["score"]
