@@ -8,6 +8,9 @@ Excited Library!!!
 
 [在Nuget中安装这个库](https://www.nuget.org/packages/HaoKangFramework)
 
+[![Build status](https://ci.appveyor.com/api/projects/status/i1kl78rex2ywocfn?svg=true)](https://ci.appveyor.com/project/SmallLuma/haokangframework)
+
+
 ## 如何使用它
 
 ### 搜索图像
