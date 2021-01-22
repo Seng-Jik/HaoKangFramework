@@ -1,6 +1,8 @@
 # HaoKangFramework
 Excited Library!!!
 
+已经移动到[KoKo](https://github.com/Seng-Jik/KoKo)，具有更好的性能、稳定性。
+
 
 ## 这是个什么玩意
 这是个用于从壁纸网站上爬取图片的爬虫工具箱，本库采用F#语言编写，这个库可以帮助你从壁纸网站上爬取图片。
